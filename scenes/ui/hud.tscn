@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 280.0
+offset_bottom = 46.0
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="Label" type="Label" parent="HealthBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "100 / 100"

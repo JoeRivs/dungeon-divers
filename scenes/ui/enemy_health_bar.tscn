@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/enemy_health_bar.gd" id="1_ehb"]
+
+[node name="EnemyHealthBar" type="Node2D"]
+script = ExtResource("1_ehb")
+
+[node name="Bg" type="Polygon2D" parent="."]
+color = Color(0.1, 0.1, 0.12, 0.85)
+polygon = PackedVector2Array(-14, -3, 14, -3, 14, 3, -14, 3)
+
+[node name="Fill" type="Polygon2D" parent="."]
+position = Vector2(-13, -2)
+color = Color(0.4, 0.85, 0.35, 1)
+polygon = PackedVector2Array(0, 0, 26, 0, 26, 4, 0, 4)
