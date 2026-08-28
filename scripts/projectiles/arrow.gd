@@ -7,7 +7,6 @@ extends Area2D
 signal despawned
 
 const SPEED: float = 460.0
-const DAMAGE_DICE := Vector2i(1, 4)   ## 1d4
 const LIFETIME: float = 2.0
 
 @onready var body: Polygon2D = $Body
@@ -16,6 +15,8 @@ const LIFETIME: float = 2.0
 var _velocity: Vector2 = Vector2.ZERO
 var _life_left: float = 0.0
 var _active: bool = false
+var _damage: int = 0
+var _crit: bool = false
 
 
 func _ready() -> void:
@@ -32,10 +33,12 @@ func _physics_process(delta: float) -> void:
 		deactivate()
 
 
-func launch(from: Vector2, direction: Vector2) -> void:
+func launch(from: Vector2, direction: Vector2, damage: int, crit: bool) -> void:
 	global_position = from
 	_velocity = direction.normalized() * SPEED
 	rotation = direction.angle()
+	_damage = damage
+	_crit = crit
 	_life_left = LIFETIME
 	_active = true
 	visible = true
@@ -59,11 +62,9 @@ func _on_body_entered(hit: Node) -> void:
 	if not _active:
 		return
 	if hit.is_in_group("enemies") and hit.has_method("apply_damage"):
-		var rolled: int = Dice.roll(DAMAGE_DICE.x, DAMAGE_DICE.y)
-		var dealt: int = hit.apply_damage(rolled)
+		var dealt: int = hit.apply_damage(_damage)
 		if dealt > 0:
-			FloatingText.spawn(hit.global_position, dealt,
-					Dice.is_max(rolled, DAMAGE_DICE.x, DAMAGE_DICE.y))
+			FloatingText.spawn(hit.global_position, dealt, _crit)
 		deactivate()
 	elif hit.is_in_group("world"):
 		deactivate()

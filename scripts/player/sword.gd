@@ -1,16 +1,18 @@
 class_name Sword
 extends Area2D
 
-## Melee weapon. swing() sweeps a short arc in front of the wielder and
+## Melee weapon. use() sweeps a short arc in front of the wielder and
 ## damages every enemy caught in the arc once per swing.
 
+const KIND := &"melee"
 const DAMAGE_DICE := Vector2i(1, 4)   ## 1d4
 const ARC: float = 1.4          ## total sweep, radians
 const SWING_TIME: float = 0.18
-const COOLDOWN: float = 0.35
+const BASE_COOLDOWN: float = 0.35
 
 @onready var blade: Polygon2D = $Blade
 @onready var shape: CollisionShape2D = $Shape
+@onready var _wielder: Node = get_parent()
 
 var _swinging: bool = false
 var _cooldown_left: float = 0.0
@@ -31,19 +33,22 @@ func _physics_process(delta: float) -> void:
 		if target in _hit:
 			continue
 		if target.is_in_group("enemies") and target.has_method("apply_damage"):
-			var rolled: int = Dice.roll(DAMAGE_DICE.x, DAMAGE_DICE.y)
-			var dealt: int = target.apply_damage(rolled)
+			var dmg: Dictionary = _wielder.compute_damage(DAMAGE_DICE)
+			var dealt: int = target.apply_damage(dmg.amount)
 			if dealt > 0:
-				FloatingText.spawn(target.global_position, dealt,
-						Dice.is_max(rolled, DAMAGE_DICE.x, DAMAGE_DICE.y))
+				FloatingText.spawn(target.global_position, dealt, dmg.crit)
 			_hit.append(target)
+
+
+func use(_origin: Vector2, direction: Vector2) -> void:
+	swing(direction)
 
 
 func swing(direction: Vector2) -> void:
 	if _swinging or _cooldown_left > 0.0:
 		return
 	_swinging = true
-	_cooldown_left = COOLDOWN
+	_cooldown_left = _wielder.scaled_cooldown(BASE_COOLDOWN)
 	_hit.clear()
 
 	var base: float = direction.angle()

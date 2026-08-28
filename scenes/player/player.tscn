@@ -1,9 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/player/sword.tscn" id="2_sword"]
 [ext_resource type="PackedScene" path="res://scenes/player/bow.tscn" id="3_bow"]
 [ext_resource type="Script" path="res://scripts/components/health.gd" id="4_health"]
+[ext_resource type="Script" path="res://scripts/components/stats.gd" id="5_stats"]
+[ext_resource type="Texture2D" path="res://assets/sprites/knight.png" id="6_knight"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
 radius = 10.0
@@ -18,20 +20,22 @@ z_index = -1
 color = Color(0, 0, 0, 0.32)
 polygon = PackedVector2Array(-12, 14, -7, 11, 0, 10, 7, 11, 12, 14, 7, 17, 0, 18, -7, 17)
 
-[node name="Body" type="Polygon2D" parent="."]
-color = Color(0.36, 0.72, 1, 1)
-polygon = PackedVector2Array(-8, -3, 8, -3, 9, 12, -9, 12)
-
-[node name="Head" type="Polygon2D" parent="."]
-color = Color(0.62, 0.85, 1, 1)
-polygon = PackedVector2Array(-5, -15, 5, -15, 6, -11, 6, -3, -6, -3, -6, -11)
+[node name="Body" type="Sprite2D" parent="."]
+texture = ExtResource("6_knight")
+offset = Vector2(1, -12)
+scale = Vector2(2, 2)
 
 [node name="Nose" type="Polygon2D" parent="."]
-color = Color(1, 1, 1, 0.9)
-polygon = PackedVector2Array(4, -2, 14, 0, 4, 2)
+color = Color(1, 1, 1, 0.85)
+polygon = PackedVector2Array(16, -3, 28, 0, 16, 3)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_1")
+
+[node name="Stats" type="Node" parent="."]
+script = ExtResource("5_stats")
+max_health = 20.0
+move_speed = 220.0
 
 [node name="Sword" parent="." instance=ExtResource("2_sword")]
 
@@ -39,6 +43,6 @@ shape = SubResource("CircleShape2D_1")
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("4_health")
-max_health = 24
+max_health = 20
 
 [node name="Camera2D" type="Camera2D" parent="."]
