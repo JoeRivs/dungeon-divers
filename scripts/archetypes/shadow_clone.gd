@@ -71,7 +71,7 @@ func _echo_slash(direction: Vector2) -> void:
 	tween.tween_property(arc, "modulate:a", 0.0, 0.18)
 	tween.tween_callback(arc.queue_free)
 
-	var dmg: Dictionary = _player.compute_damage(SLASH_DICE)
+	var dmg: Dictionary = _player.compute_damage(SLASH_DICE, &"melee")
 	var amount: int = maxi(int(round(dmg.amount * CLONE_DAMAGE_FACTOR)), 1)
 	var origin: Vector2 = ghost.global_position
 	var facing: Vector2 = direction.normalized()

@@ -1,36 +1,40 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://scripts/enemies/grunt.gd" id="1_grunt"]
+[ext_resource type="Script" path="res://scripts/enemies/skeleton_archer.gd" id="1_arch"]
 [ext_resource type="Script" path="res://scripts/components/health.gd" id="2_health"]
 [ext_resource type="PackedScene" path="res://scenes/ui/enemy_health_bar.tscn" id="3_ehb"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
 radius = 10.0
 
-[node name="Grunt" type="CharacterBody2D" groups=["enemies"]]
+[node name="SkeletonArcher" type="CharacterBody2D" groups=["enemies"]]
 collision_layer = 4
 collision_mask = 5
-script = ExtResource("1_grunt")
+script = ExtResource("1_arch")
 
 [node name="Shadow" type="Polygon2D" parent="."]
 z_index = -1
-color = Color(0, 0, 0, 0.32)
-polygon = PackedVector2Array(-12, 13, -7, 10, 0, 9, 7, 10, 12, 13, 7, 16, 0, 17, -7, 16)
+color = Color(0, 0, 0, 0.3)
+polygon = PackedVector2Array(-11, 12, -6, 9, 0, 8, 6, 9, 11, 12, 6, 15, 0, 16, -6, 15)
 
 [node name="Body" type="Polygon2D" parent="."]
-color = Color(0.85, 0.22, 0.22, 1)
-polygon = PackedVector2Array(-8, -2, 8, -2, 9, 11, -9, 11)
+color = Color(0.85, 0.83, 0.7, 1)
+polygon = PackedVector2Array(-7, -2, 7, -2, 8, 11, -8, 11)
 
 [node name="Head" type="Polygon2D" parent="."]
-color = Color(0.6, 0.13, 0.13, 1)
+color = Color(0.93, 0.9, 0.78, 1)
 polygon = PackedVector2Array(-5, -13, 5, -13, 6, -9, 6, -2, -6, -2, -6, -9)
+
+[node name="Bow" type="Polygon2D" parent="."]
+color = Color(0.45, 0.32, 0.2, 1)
+polygon = PackedVector2Array(9, -10, 12, -9, 13, 0, 12, 9, 9, 10, 11, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_1")
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("2_health")
-max_health = 12
+max_health = 8
 
 [node name="EnemyHealthBar" parent="." instance=ExtResource("3_ehb")]
 position = Vector2(0, -22)

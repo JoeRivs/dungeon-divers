@@ -23,6 +23,6 @@ func use(origin: Vector2, direction: Vector2) -> void:
 		return
 	_cooldown_left = _wielder.scaled_cooldown(BASE_COOLDOWN)
 
-	var dmg: Dictionary = _wielder.compute_damage(DAMAGE_DICE)
+	var dmg: Dictionary = _wielder.compute_damage(DAMAGE_DICE, KIND)
 	var arrow: Arrow = ProjectilePool.acquire_arrow()
 	arrow.launch(origin + direction.normalized() * MUZZLE_OFFSET, direction, dmg.amount, dmg.crit)

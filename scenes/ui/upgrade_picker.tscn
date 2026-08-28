@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/upgrade_picker.gd" id="1_pick"]
+
+[node name="UpgradePicker" type="CanvasLayer"]
+layer = 150
+process_mode = 3
+script = ExtResource("1_pick")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.72)
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 90.0
+offset_right = 300.0
+offset_bottom = 130.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+text = "CHOOSE AN UPGRADE"
+
+[node name="Cards" type="HBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -390.0
+offset_top = -120.0
+offset_right = 390.0
+offset_bottom = 120.0
+theme_override_constants/separation = 30
+alignment = 1

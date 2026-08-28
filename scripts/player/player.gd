@@ -143,11 +143,12 @@ func _end_dodge() -> void:
 	body.modulate = Color.WHITE
 
 
-## Rolls attack damage through the player's offensive stats.
+## Rolls attack damage through the player's offensive stats for a weapon
+## kind (&"melee" scales off Might, &"ranged" off Finesse).
 ## Returns { amount: int, crit: bool }.
-func compute_damage(dice: Vector2i) -> Dictionary:
+func compute_damage(dice: Vector2i, kind: StringName = &"melee") -> Dictionary:
 	var raw: int = Dice.roll(dice.x, dice.y)
-	var amount: int = int(round((raw + stats.get_stat(&"dice_bonus")) * stats.get_stat(&"damage_mult")))
+	var amount: int = int(round((raw + stats.attack_flat(kind)) * stats.attack_mult(kind)))
 	return {"amount": maxi(amount, 1), "crit": Dice.is_max(raw, dice.x, dice.y)}
 
 
@@ -174,9 +175,7 @@ func _flash() -> void:
 
 
 func _on_died() -> void:
+	# Run restart is handled by the run shell (listens to health.died).
 	_dead = true
 	velocity = Vector2.ZERO
 	body.modulate = Color(0.35, 0.35, 0.35)
-	await get_tree().create_timer(1.2).timeout
-	RunState.start_new_run(RunState.player_class, RunState.archetype_id)
-	get_tree().reload_current_scene()

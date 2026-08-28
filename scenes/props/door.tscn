@@ -1,0 +1,53 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/props/door.gd" id="1_door"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(48, 44)
+
+[node name="Door" type="Area2D"]
+modulate = Color(0.55, 0.55, 0.6, 1)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_door")
+
+[node name="Trigger" type="CollisionShape2D" parent="."]
+position = Vector2(0, -6)
+shape = SubResource("RectangleShape2D_1")
+
+[node name="Frame" type="Polygon2D" parent="."]
+color = Color(0.3, 0.28, 0.36, 1)
+polygon = PackedVector2Array(-30, 14, -30, -46, -18, -46, -18, 2, 18, 2, 18, -46, 30, -46, 30, 14)
+
+[node name="Glow" type="Polygon2D" parent="."]
+color = Color(0.5, 0.85, 1, 0.5)
+polygon = PackedVector2Array(-18, 2, 18, 2, 18, -44, -18, -44)
+
+[node name="DieBadge" type="Polygon2D" parent="."]
+position = Vector2(0, -63)
+color = Color(0.5, 0.85, 1, 0.3)
+polygon = PackedVector2Array(0, -21, 18.2, -10.5, 18.2, 10.5, 0, 21, -18.2, 10.5, -18.2, -10.5)
+
+[node name="DiffLabel" type="Label" parent="."]
+offset_left = -40.0
+offset_top = -75.0
+offset_right = 40.0
+offset_bottom = -51.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "10"
+
+[node name="RewardLabel" type="Label" parent="."]
+offset_left = -50.0
+offset_top = -40.0
+offset_right = 50.0
+offset_bottom = -22.0
+theme_override_colors/font_color = Color(1, 0.86, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "GOLD"

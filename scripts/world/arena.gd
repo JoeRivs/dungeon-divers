@@ -10,8 +10,9 @@ extends Node2D
 ## occludes / is occluded by wall pieces correctly as he moves past them.
 ## Long side walls are chopped into segments so the sort has fine grain.
 
-const HALF_WIDTH: float = 440.0
-const HALF_HEIGHT: float = 290.0
+@export var half_width: float = 440.0
+@export var half_height: float = 290.0
+
 const WALL: float = 22.0            ## footprint thickness
 const WALL_HEIGHT: float = 22.0     ## apparent height on screen
 const SEGMENT: float = 48.0         ## Y-sort granularity for long walls
@@ -25,11 +26,11 @@ const COLOR_WALL_FACE := Color(0.20, 0.19, 0.26)
 
 func _ready() -> void:
 	_add_floor()
-	var outer_w: float = HALF_WIDTH * 2.0 + WALL * 2.0
-	_add_wall_block(Vector2(0.0, -HALF_HEIGHT), outer_w, WALL)
-	_add_wall_block(Vector2(0.0, HALF_HEIGHT + WALL), outer_w, WALL)
-	_add_wall_strip(-HALF_WIDTH - WALL * 0.5)
-	_add_wall_strip(HALF_WIDTH + WALL * 0.5)
+	var outer_w: float = half_width * 2.0 + WALL * 2.0
+	_add_wall_block(Vector2(0.0, -half_height), outer_w, WALL)
+	_add_wall_block(Vector2(0.0, half_height + WALL), outer_w, WALL)
+	_add_wall_strip(-half_width - WALL * 0.5)
+	_add_wall_strip(half_width + WALL * 0.5)
 
 
 func _add_floor() -> void:
@@ -37,15 +38,15 @@ func _add_floor() -> void:
 	floor_poly.color = COLOR_FLOOR
 	floor_poly.z_index = FLOOR_Z
 	floor_poly.polygon = PackedVector2Array([
-		Vector2(-HALF_WIDTH, -HALF_HEIGHT), Vector2(HALF_WIDTH, -HALF_HEIGHT),
-		Vector2(HALF_WIDTH, HALF_HEIGHT), Vector2(-HALF_WIDTH, HALF_HEIGHT),
+		Vector2(-half_width, -half_height), Vector2(half_width, -half_height),
+		Vector2(half_width, half_height), Vector2(-half_width, half_height),
 	])
 	add_child(floor_poly)
 
 
 func _add_wall_strip(x: float) -> void:
-	var top: float = -HALF_HEIGHT - WALL
-	var bottom: float = HALF_HEIGHT + WALL
+	var top: float = -half_height - WALL
+	var bottom: float = half_height + WALL
 	var count: int = int(ceil((bottom - top) / SEGMENT))
 	var depth: float = (bottom - top) / float(count)
 	for i in count:

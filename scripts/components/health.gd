@@ -49,6 +49,14 @@ func set_current(hp: int) -> void:
 	health_changed.emit(current_health, max_health)
 
 
+## For enemies scaled by room difficulty: reset max and refill.
+func set_max_health(value: int) -> void:
+	max_health = maxi(value, 1)
+	current_health = max_health
+	is_dead = false
+	health_changed.emit(current_health, max_health)
+
+
 func take_damage(amount: int) -> void:
 	if is_dead or amount <= 0:
 		return

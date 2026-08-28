@@ -12,6 +12,10 @@ var gold: int = 0
 var current_health: int = -1          ## -1 = "unset, spawn at full"
 var floor_index: int = 1
 var room_index: int = 1
+var rooms_cleared_this_floor: int = 0
+var current_room_difficulty: int = 14
+var current_room_tier: int = 1
+var upgrades: Array[Upgrade] = []
 
 
 func start_new_run(pc: PlayerClass, aid: StringName = &"") -> void:
@@ -21,6 +25,10 @@ func start_new_run(pc: PlayerClass, aid: StringName = &"") -> void:
 	current_health = -1
 	floor_index = 1
 	room_index = 1
+	rooms_cleared_this_floor = 0
+	current_room_difficulty = 14
+	current_room_tier = 1
+	upgrades = []
 	run_started.emit()
 
 
