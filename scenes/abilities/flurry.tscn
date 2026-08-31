@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/abilities/flurry.gd" id="1_flurry"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(36, 14)
+
+[node name="Flurry" type="Node2D"]
+script = ExtResource("1_flurry")
+display_name = "Flurry"
+ability_id = &"flurry"
+base_cooldown = 0.26
+damage_kind = &"melee"
+damage_dice = Vector2i(1, 4)
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 4
+monitoring = false
+
+[node name="Shape" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(22, 0)
+shape = SubResource("RectangleShape2D_1")
+disabled = true
+
+[node name="Swoosh" type="Polygon2D" parent="."]
+z_index = 3

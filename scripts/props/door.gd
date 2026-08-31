@@ -28,6 +28,12 @@ func setup(opt: RoomOption) -> void:
 	option = opt
 	die_badge.polygon = Dice.shape(opt.die_sides, BADGE_RADIUS)
 
+	if opt.is_forge:
+		die_badge.color = Color(1.0, 0.55, 0.2, 0.4)
+		diff_label.text = "FORGE"
+		reward_label.text = "REWIRE"
+		return
+
 	# lower die = more danger = warmer badge
 	var danger: float = 1.0 - float(opt.die_sides) / 20.0
 	if opt.is_boss:

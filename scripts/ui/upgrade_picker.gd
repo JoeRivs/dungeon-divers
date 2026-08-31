@@ -1,10 +1,11 @@
 extends CanvasLayer
 
 ## Hades-style "pick 1 of 3" overlay. present() shows the cards and awaits a
-## choice (mouse click or keys 1/2/3), returns the chosen Upgrade. Runs while
-## the tree is paused (process_mode = Always on the scene root).
+## choice (mouse click or keys 1/2/3), returns the chosen entry. Works for
+## anything with `display_name` + `description` (Upgrade or ForgeUpgrade).
+## Runs while the tree is paused (process_mode = Always on the scene root).
 
-signal _picked(upgrade: Upgrade)
+signal _picked(choice)
 
 @onready var cards: HBoxContainer = $Cards
 
@@ -15,18 +16,19 @@ func _ready() -> void:
 	visible = false
 
 
-func present(choices: Array) -> Upgrade:
+func present(choices: Array) -> Resource:
 	_choices = choices
 	for child in cards.get_children():
 		child.queue_free()
 
 	for i in choices.size():
-		var u: Upgrade = choices[i]
+		var u = choices[i]
+		var tag: String = "— Tier %d —" % u.tier if "tier" in u else "— FORGE —"
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(240, 220)
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.add_theme_font_size_override("font_size", 18)
-		button.text = "%d\n\n%s\n\n%s\n\n— Tier %d —" % [i + 1, u.display_name, u.description, u.tier]
+		button.text = "%d\n\n%s\n\n%s\n\n%s" % [i + 1, u.display_name, u.description, tag]
 		button.pressed.connect(_choose.bind(u))
 		cards.add_child(button)
 
@@ -34,7 +36,7 @@ func present(choices: Array) -> Upgrade:
 	if cards.get_child_count() > 0:
 		cards.get_child(0).grab_focus()
 
-	var chosen: Upgrade = await _picked
+	var chosen: Resource = await _picked
 	visible = false
 	return chosen
 
@@ -53,5 +55,5 @@ func _unhandled_input(event: InputEvent) -> void:
 			_choose(_choices[idx])
 
 
-func _choose(upgrade: Upgrade) -> void:
-	_picked.emit(upgrade)
+func _choose(choice) -> void:
+	_picked.emit(choice)

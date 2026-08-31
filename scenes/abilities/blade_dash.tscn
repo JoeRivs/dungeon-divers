@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/abilities/blade_dash.gd" id="1_bd"]
+
+[node name="BladeDash" type="Node2D"]
+script = ExtResource("1_bd")
+display_name = "Dash"
+base_cooldown = 0.5

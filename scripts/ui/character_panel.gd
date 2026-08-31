@@ -60,12 +60,19 @@ func _populate() -> void:
 	_gap()
 
 	_row("COMBAT", 18, HEADER_COLOR)
-	_dmg_row("Melee  (Might)  ", s, Sword.DAMAGE_DICE, &"melee")
-	_dmg_row("Ranged (Finesse)", s, Bow.DAMAGE_DICE, &"ranged")
+	var slots: Dictionary = _player.slots()
+	for slot in [&"primary", &"secondary", &"skill"]:
+		var ability = slots.get(slot)
+		if is_instance_valid(ability) and ability.damage_kind != &"none":
+			_dmg_row(ability.display_name, s, ability.damage_dice, ability.damage_kind)
 	_row("Max HP           %d" % roundi(s.get_stat(&"max_health")))
 	_row("Move speed       %d" % roundi(s.get_stat(&"move_speed")))
 	_row("Cooldown         %+d%%" % roundi((s.get_stat(&"cooldown_mult") - 1.0) * 100.0))
 	_row("Damage reduction %d%%" % roundi(s.get_stat(&"damage_reduction") * 100.0))
+	if _player.has_resource():
+		_row("%s            %d / %d" % [
+			RunState.player_class.pool_name,
+			roundi(_player.resource_value()), roundi(s.get_stat(&"resource_max"))])
 	_gap()
 
 	_row("UPGRADES (%d)" % RunState.upgrades.size(), 18, HEADER_COLOR)
@@ -83,6 +90,14 @@ func _populate() -> void:
 			var e: Dictionary = seen[id]
 			var times: String = "  ×%d" % e["n"] if e["n"] > 1 else ""
 			_row("T%d  %s%s — %s" % [e["u"].tier, e["u"].display_name, times, e["u"].description], 14)
+	_gap()
+
+	_row("FORGE (%d)" % RunState.forges.size(), 18, HEADER_COLOR)
+	if RunState.forges.is_empty():
+		_row("none yet", 14, DIM_COLOR)
+	else:
+		for f in RunState.forges:
+			_row("%s — %s" % [f.display_name, f.description], 14)
 
 
 ## One damage line: dice notation + flat + multiplier + the average a hit
@@ -91,7 +106,8 @@ func _dmg_row(label: String, s: Node, dice: Vector2i, kind: StringName) -> void:
 	var flat: int = roundi(s.attack_flat(kind))
 	var mult: float = s.attack_mult(kind)
 	var flat_txt: String = " %+d" % flat if flat != 0 else ""
-	_row("%s  %dd%d%s  ×%.2f   avg %.1f" % [label, dice.x, dice.y, flat_txt, mult, _avg_hit(s, dice, kind)])
+	_row("%s  %dd%d%s  ×%.2f  avg %.1f  (%s)" % [
+		label, dice.x, dice.y, flat_txt, mult, _avg_hit(s, dice, kind), kind])
 
 
 func _avg_hit(s: Node, dice: Vector2i, kind: StringName) -> float:

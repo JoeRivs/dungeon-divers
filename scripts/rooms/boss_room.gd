@@ -44,6 +44,12 @@ func get_boss() -> Node:
 
 
 func setup(_difficulty: int, floor_index: int) -> void:
+	# fixed, roomy arena with two pillars to break the boss's charge
+	arena.build(540.0, 360.0, [
+		RoomLayout.block(Vector2(-175.0, -30.0), Vector2(72.0, 72.0)),
+		RoomLayout.block(Vector2(175.0, -30.0), Vector2(72.0, 72.0)),
+	])
+
 	_boss = BOSS.instantiate()
 	add_child(_boss)
 	_boss.global_position = Vector2(0.0, -arena.half_height * 0.4)

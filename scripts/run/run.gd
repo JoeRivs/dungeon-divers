@@ -7,6 +7,7 @@ extends Node2D
 
 const COMBAT_ROOM := preload("res://scenes/rooms/combat_room.tscn")
 const BOSS_ROOM := preload("res://scenes/rooms/boss_room.tscn")
+const FORGE_ROOM := preload("res://scenes/rooms/forge_room.tscn")
 const CLASS_SELECT := "res://scenes/ui/class_select.tscn"
 
 const ROOMS_PER_FLOOR: int = 10
@@ -32,6 +33,7 @@ var _over: bool = false
 func _ready() -> void:
 	RunState.ensure_run()
 	hud.bind(player.health)
+	hud.bind_player(player)
 	character_panel.bind(player)
 	player.health.died.connect(_on_player_died)
 
@@ -51,6 +53,8 @@ func _load_room(scene: PackedScene) -> void:
 	_room = scene.instantiate()
 	room_host.add_child(_room)
 	_room.cleared.connect(_on_room_cleared)
+	if _room.has_method("is_forge_room"):
+		_room.forge_requested.connect(_on_forge_requested, CONNECT_ONE_SHOT)
 	_room.setup(RunState.current_room_difficulty, RunState.floor_index)
 
 	player.global_position = _room.get_entry_point()
@@ -84,7 +88,7 @@ func _offer_upgrade() -> void:
 		return
 
 	get_tree().paused = true
-	var picked: Upgrade = await upgrade_picker.present(choices)
+	var picked = await upgrade_picker.present(choices)
 	get_tree().paused = false
 
 	if picked != null:
@@ -107,6 +111,8 @@ func _open_doors() -> void:
 	if _room.has_method("get_boss"):
 		RunState.floor_index += 1
 		RunState.rooms_cleared_this_floor = 0
+		RunState.forge_offered_this_floor = false
+		RunState.forge_room_target = randi_range(3, 7)
 		if RunState.floor_index > MAX_FLOORS:
 			_end_run("VICTORY")
 			return
@@ -126,12 +132,18 @@ func _open_doors() -> void:
 
 ## 2-3 doors, each die rolled independently against the weights (duplicates
 ## allowed), so most stretches are all d20/d12 and a d8 - let alone a d4 -
-## is a genuine event.
+## is a genuine event. Once per floor, mid-stretch, one door becomes a Forge.
 func _door_choices() -> Array:
 	var count: int = 3 if randf() < 0.35 else 2
 	var out: Array = []
 	for i in count:
 		out.append(RoomOption.from_die(_weighted_die()))
+
+	if not RunState.forge_offered_this_floor \
+			and RunState.rooms_cleared_this_floor >= RunState.forge_room_target \
+			and RunState.rooms_cleared_this_floor < ROOMS_PER_FLOOR:
+		RunState.forge_offered_this_floor = true
+		out[randi() % out.size()] = RoomOption.forge()
 	return out
 
 
@@ -153,18 +165,47 @@ func _arm_doors() -> void:
 
 
 func _on_door_chosen(option: RoomOption) -> void:
-	# the roll happens now, on commit - not before
-	var rolled: int = option.roll()
-	hud.show_roll(rolled, option.die_sides)
-
-	RunState.current_room_difficulty = rolled
-	RunState.current_room_tier = option.tier()
+	var hold: float = 0.4
+	if not option.is_forge:
+		# the roll happens now, on commit - not before
+		var rolled: int = option.roll()
+		hud.show_roll(rolled, option.die_sides)
+		RunState.current_room_difficulty = rolled
+		RunState.current_room_tier = option.tier()
+		hold = 1.1
 	RunState.room_index += 1
 
+	var scene: PackedScene = COMBAT_ROOM
+	if option.is_boss:
+		scene = BOSS_ROOM
+	elif option.is_forge:
+		scene = FORGE_ROOM
+
 	await _fade(1.0)
-	await get_tree().create_timer(1.1).timeout  # hold on the roll over black
-	_load_room(BOSS_ROOM if option.is_boss else COMBAT_ROOM)
+	await get_tree().create_timer(hold).timeout  # hold over black
+	_load_room(scene)
 	await _fade(0.0)
+
+
+func _on_forge_requested() -> void:
+	await _offer_forge()
+	_open_doors()
+
+
+## Pause, show up to 3 forge rewires valid for this loadout, apply the pick.
+func _offer_forge() -> void:
+	var choices: Array[ForgeUpgrade] = Forges.draw_for(player, RunState.forges, 3)
+	if choices.is_empty():
+		return
+
+	get_tree().paused = true
+	var picked = await upgrade_picker.present(choices)
+	get_tree().paused = false
+
+	if picked != null:
+		RunState.forges.append(picked)
+		player.apply_forge(picked)
+		hud.refresh_run()
 
 
 func _end_run(banner: String) -> void:
@@ -178,6 +219,17 @@ func _end_run(banner: String) -> void:
 func _on_player_died() -> void:
 	if not _over:
 		_end_run("YOU DIED")
+
+
+## R = bail out: drop straight back to class-select for a fresh pick. The
+## next class pick calls RunState.start_new_run(), which zeroes everything.
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_pressed() and not event.is_echo() \
+			and event.physical_keycode == KEY_R:
+		get_viewport().set_input_as_handled()
+		_over = true
+		get_tree().paused = false
+		get_tree().change_scene_to_file(CLASS_SELECT)
 
 
 func _fade(target_alpha: float) -> void:

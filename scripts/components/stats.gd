@@ -15,10 +15,11 @@ signal changed
 
 const ATTR_BASELINE: float = 10.0
 
-## which attribute powers each weapon kind's damage
+## which attribute powers each attack kind's damage
 const ATTACK_ATTR := {
 	&"melee": &"might",
 	&"ranged": &"finesse",
+	&"spell": &"focus",
 }
 
 ## primary attributes
@@ -35,6 +36,8 @@ const ATTACK_ATTR := {
 @export var cooldown_mult: float = 1.0
 @export var damage_reduction: float = 0.0
 @export var spell_power: float = 1.0
+@export var resource_max: float = 0.0        ## class resource pool (0 = none)
+@export var resource_regen: float = 0.0      ## per second
 
 var _base: Dictionary = {}
 var _mods: Array[Dictionary] = []       ## { mod: StatModifier, source: StringName }
@@ -54,6 +57,8 @@ func _ready() -> void:
 		&"cooldown_mult": cooldown_mult,
 		&"damage_reduction": damage_reduction,
 		&"spell_power": spell_power,
+		&"resource_max": resource_max,
+		&"resource_regen": resource_regen,
 	}
 	_recompute()
 
@@ -82,14 +87,16 @@ func get_stat(key: StringName) -> float:
 	return _final.get(key, 0.0)
 
 
-## Flat damage bonus for a weapon kind: the generic bucket (from upgrades)
-## plus a D&D-style modifier from the kind's attribute (Might for melee,
-## Finesse for ranged).
+## Flat damage bonus: the generic bucket (from upgrades) plus, for MARTIAL
+## attacks only, a D&D-style modifier from the kind's attribute (Might for
+## melee, Finesse for ranged). Spells get no flat mod - it dwarfs their
+## small dice; they scale on the multiplier instead.
 func attack_flat(kind: StringName) -> float:
 	var bonus: float = get_stat(&"dice_bonus")
-	var attr: StringName = ATTACK_ATTR.get(kind, &"")
-	if attr != &"":
-		bonus += floorf((get_stat(attr) - ATTR_BASELINE) / 2.0)
+	if kind == &"melee" or kind == &"ranged":
+		var attr: StringName = ATTACK_ATTR.get(kind, &"")
+		if attr != &"":
+			bonus += floorf((get_stat(attr) - ATTR_BASELINE) / 2.0)
 	return bonus
 
 
@@ -133,6 +140,7 @@ func _derive() -> void:
 	_final[&"max_health"] += d_vit * 3.0
 	_final[&"damage_reduction"] += d_vit * 0.01
 	_final[&"spell_power"] += d_focus * 0.08
+	_final[&"resource_regen"] += d_focus * 0.1
 
 	_final[&"damage_mult"] = maxf(_final[&"damage_mult"], 0.1)
 	_final[&"move_speed"] = maxf(_final[&"move_speed"], 20.0)

@@ -24,7 +24,7 @@ var _anchor_dir: Vector2 = Vector2.DOWN
 func _ready() -> void:
 	_player = get_parent()
 
-	var pbody: Sprite2D = _player.get_node("Body")
+	var pbody: Sprite2D = _player.get_node("Body/Sprite")
 	sprite.texture = pbody.texture
 	sprite.offset = pbody.offset
 	sprite.scale = pbody.scale

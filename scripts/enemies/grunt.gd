@@ -4,6 +4,8 @@ extends CharacterBody2D
 ## telegraphs briefly then hits them. Easy to dodge through the windup.
 ## TODO: lift these stats into an EnemyType resource in res://data/.
 
+const SLASH_FX := preload("res://scenes/fx/slash_effect.tscn")
+
 const SPEED: float = 78.0
 const ATTACK_RANGE: float = 26.0
 const ATTACK_DICE := Vector2i(1, 4)   ## 1d4
@@ -67,8 +69,13 @@ func _start_attack() -> void:
 
 	_winding_up = false
 	body.modulate = Color.WHITE
-	if is_instance_valid(_player) \
-			and global_position.distance_to(_player.global_position) <= ATTACK_RANGE + 10.0 \
+	if not is_instance_valid(_player):
+		return
+
+	var dir: Vector2 = (_player.global_position - global_position).normalized()
+	_slash(dir)
+
+	if global_position.distance_to(_player.global_position) <= ATTACK_RANGE + 10.0 \
 			and _player.has_method("apply_damage"):
 		var raw: int = Dice.roll(ATTACK_DICE.x, ATTACK_DICE.y)
 		var rolled: int = maxi(int(round(raw * _damage_mult)), 1)
@@ -76,6 +83,13 @@ func _start_attack() -> void:
 		if dealt > 0:
 			FloatingText.spawn(_player.global_position, dealt,
 					Dice.is_max(raw, ATTACK_DICE.x, ATTACK_DICE.y), true)
+
+
+func _slash(dir: Vector2) -> void:
+	var fx := SLASH_FX.instantiate()
+	get_parent().add_child(fx)
+	fx.global_position = global_position + dir * 12.0
+	fx.play(dir, 34.0, 20.0, Color(1.0, 0.55, 0.4, 0.8), 1.5)
 
 
 func apply_damage(amount: int) -> int:

@@ -11,19 +11,27 @@ signal reward_claimed
 const GRUNT := preload("res://scenes/enemies/grunt.tscn")
 const ARCHER := preload("res://scenes/enemies/skeleton_archer.tscn")
 const OGRE := preload("res://scenes/enemies/ogre.tscn")
+const IMP := preload("res://scenes/enemies/imp.tscn")
+const HEXER := preload("res://scenes/enemies/hexer.tscn")
 const DOOR := preload("res://scenes/props/door.tscn")
 const REWARD_CHEST := preload("res://scenes/props/reward_chest.tscn")
 
 const MAX_PER_WAVE: int = 8
 const WAVE_GAP: float = 1.0
 
-## ogre = mini-tank: expensive, so it only turns up when the budget is fat
-## (a low roll), and only rarely even then
+## ogre = mini-tank: expensive, only in the fat-budget (low-roll) rooms
 const OGRE_COST: float = 2.5
 const OGRE_MIN_BUDGET: float = 2.5
 const OGRE_MAX_DIFFICULTY: int = 6
 const OGRE_CHANCE: float = 0.28
+## hexer = ranged zoner: uncommon, needs a bit of budget
+const HEXER_COST: float = 2.0
+const HEXER_MIN_BUDGET: float = 2.5
+const HEXER_CHANCE: float = 0.18
 const ARCHER_COST: float = 1.5
+## imp = fast chip enemy, takes a grunt slot sometimes
+const IMP_COST: float = 1.0
+const IMP_CHANCE: float = 0.3
 const GRUNT_COST: float = 1.0
 
 @onready var arena: Node2D = $Arena
@@ -33,6 +41,7 @@ var _cleared: bool = false
 var _doors: Array = []
 
 var _difficulty: int = 12
+var _obstacles: Array = []
 var _wave: int = 0
 var _wave_count: int = 1
 var _wave_budget: float = 0.0
@@ -61,6 +70,13 @@ func spawn_reward(tier: int) -> void:
 	var spot := here + Vector2(0.0, -100.0)
 	spot.x = clampf(spot.x, -arena.half_width + 60.0, arena.half_width - 60.0)
 	spot.y = clampf(spot.y, -arena.half_height + 70.0, arena.half_height - 60.0)
+	# don't drop it inside an obstacle - shuffle toward the exits until clear
+	var guard: int = 0
+	while RoomLayout.point_blocked(_obstacles, spot, 32.0) and guard < 14:
+		guard += 1
+		spot.y = maxf(spot.y - 32.0, -arena.half_height + 70.0)
+		if guard == 7:
+			spot.x = clampf(spot.x + 90.0, -arena.half_width + 60.0, arena.half_width - 60.0)
 	chest.global_position = spot
 	chest.setup(tier)
 	chest.claimed.connect(func() -> void: reward_claimed.emit())
@@ -68,6 +84,11 @@ func spawn_reward(tier: int) -> void:
 
 func setup(difficulty: int, floor_index: int) -> void:
 	_difficulty = difficulty
+
+	var layout: Dictionary = RoomLayout.for_combat(difficulty, floor_index)
+	_obstacles = layout["obstacles"]
+	arena.build(layout["half_width"], layout["half_height"], _obstacles)
+
 	var total: float = _threat_budget(difficulty, floor_index)
 	_wave_count = _waves_for(difficulty)
 	_wave_budget = maxf(total / float(_wave_count), 2.5)
@@ -99,9 +120,15 @@ func _spawn_wave() -> void:
 		if budget >= OGRE_MIN_BUDGET and _difficulty <= OGRE_MAX_DIFFICULTY and randf() < OGRE_CHANCE:
 			scene = OGRE
 			cost = OGRE_COST
-		elif budget >= 1.5 and randf() < 0.4:
+		elif budget >= HEXER_MIN_BUDGET and randf() < HEXER_CHANCE:
+			scene = HEXER
+			cost = HEXER_COST
+		elif budget >= 1.5 and randf() < 0.35:
 			scene = ARCHER
 			cost = ARCHER_COST
+		elif randf() < IMP_CHANCE:
+			scene = IMP
+			cost = IMP_COST
 		else:
 			scene = GRUNT
 			cost = GRUNT_COST
@@ -166,11 +193,21 @@ func _threat_budget(difficulty: int, floor_index: int) -> float:
 
 func _spawn_slots() -> Array:
 	var hw: float = arena.half_width - 80.0
-	var hh: float = arena.half_height - 80.0
-	return [
-		Vector2(-hw, -hh), Vector2(hw, -hh), Vector2(-hw, 0.0), Vector2(hw, 0.0),
-		Vector2(0.0, -hh), Vector2(-hw * 0.4, hh * 0.2), Vector2(hw * 0.4, hh * 0.2),
-	]
+	var hh: float = arena.half_height - 85.0
+	var entry: Vector2 = get_entry_point()
+	var out: Array = []
+	var tries: int = 0
+	while out.size() < 9 and tries < 70:
+		tries += 1
+		var p := Vector2(randf_range(-hw, hw), randf_range(-hh, hh - 30.0))
+		if p.distance_to(entry) < 130.0:
+			continue
+		if RoomLayout.point_blocked(_obstacles, p, 24.0):
+			continue
+		out.append(p)
+	if out.is_empty():
+		out.append(Vector2(0.0, -hh * 0.4))
+	return out
 
 
 func _door_slots() -> Array:

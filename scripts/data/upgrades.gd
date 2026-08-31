@@ -22,6 +22,8 @@ static func _all() -> Array[Upgrade]:
 		[StatModifier.make(&"finesse", 1.0)]))
 	a.append(Upgrade.make(&"vit_1", "Toughness", "+1 Vitality", 1,
 		[StatModifier.make(&"vitality", 1.0)]))
+	a.append(Upgrade.make(&"foc_1", "Insight", "+1 Focus", 1,
+		[StatModifier.make(&"focus", 1.0)]))
 	a.append(Upgrade.make(&"dmg_1", "Whetstone", "+3% damage", 1,
 		[StatModifier.make(&"damage_mult", 0.03)]))
 	a.append(Upgrade.make(&"spd_1", "Light Step", "+8 move speed", 1,
@@ -38,6 +40,8 @@ static func _all() -> Array[Upgrade]:
 		[StatModifier.make(&"finesse", 2.0)]))
 	a.append(Upgrade.make(&"vit_2", "Hardy", "+2 Vitality", 2,
 		[StatModifier.make(&"vitality", 2.0)]))
+	a.append(Upgrade.make(&"foc_2", "Attunement", "+2 Focus", 2,
+		[StatModifier.make(&"focus", 2.0)]))
 	a.append(Upgrade.make(&"dmg_2", "Sharpened", "+7% damage", 2,
 		[StatModifier.make(&"damage_mult", 0.07)]))
 	a.append(Upgrade.make(&"cd_2", "Fluid Motion", "-6% cooldowns", 2,
@@ -54,6 +58,8 @@ static func _all() -> Array[Upgrade]:
 		[StatModifier.make(&"vitality", 2.0), StatModifier.make(&"damage_reduction", 0.04)]))
 	a.append(Upgrade.make(&"cd_3", "Momentum", "-10% cooldowns", 3,
 		[StatModifier.make(&"cooldown_mult", 0.0, 0.90)]))
+	a.append(Upgrade.make(&"mix_3d", "Dark Pact", "+3 Focus, +6% damage", 3,
+		[StatModifier.make(&"focus", 3.0), StatModifier.make(&"damage_mult", 0.06)]))
 
 	# --- tier 4 : very rare -------------------------------------------
 	a.append(Upgrade.make(&"mix_4a", "Titan", "+3 Might, +10% damage", 4,
@@ -62,6 +68,8 @@ static func _all() -> Array[Upgrade]:
 		[StatModifier.make(&"vitality", 3.0), StatModifier.make(&"damage_reduction", 0.06)]))
 	a.append(Upgrade.make(&"mix_4c", "Flash", "+3 Finesse, -8% cooldowns", 4,
 		[StatModifier.make(&"finesse", 3.0), StatModifier.make(&"cooldown_mult", 0.0, 0.92)]))
+	a.append(Upgrade.make(&"foc_4", "Third Eye", "+4 Focus, +5 Soul regen", 4,
+		[StatModifier.make(&"focus", 4.0), StatModifier.make(&"resource_regen", 5.0)]))
 	a.append(Upgrade.make(&"omni_4", "Ascendant", "+1 to every attribute", 4,
 		[StatModifier.make(&"might", 1.0), StatModifier.make(&"finesse", 1.0),
 		StatModifier.make(&"vitality", 1.0), StatModifier.make(&"focus", 1.0)]))

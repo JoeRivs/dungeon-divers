@@ -9,6 +9,7 @@ const DICE: Array[int] = [4, 8, 12, 20]
 
 var die_sides: int = 20
 var is_boss: bool = false
+var is_forge: bool = false
 
 
 static func from_die(sides: int) -> RoomOption:
@@ -21,6 +22,14 @@ static func boss() -> RoomOption:
 	var o := RoomOption.new()
 	o.die_sides = 20
 	o.is_boss = true
+	return o
+
+
+## A Forge room: no fight, one rare ability rewire, then on to the next room.
+static func forge() -> RoomOption:
+	var o := RoomOption.new()
+	o.die_sides = 20
+	o.is_forge = true
 	return o
 
 

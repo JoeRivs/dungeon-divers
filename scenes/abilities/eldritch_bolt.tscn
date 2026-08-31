@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/abilities/eldritch_bolt.gd" id="1_bolt"]
+
+[node name="EldritchBolt" type="Node2D"]
+script = ExtResource("1_bolt")
+display_name = "Eldritch Bolt"
+ability_id = &"eldritch_bolt"
+base_cooldown = 0.5
+damage_kind = &"spell"

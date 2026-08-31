@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/abilities/life_drain.gd" id="1_drain"]
+
+[node name="LifeDrain" type="Node2D"]
+script = ExtResource("1_drain")
+display_name = "Life Drain"
+ability_id = &"life_drain"
+base_cooldown = 0.8
+mana_cost = 22.0
+damage_kind = &"spell"
+damage_dice = Vector2i(1, 6)

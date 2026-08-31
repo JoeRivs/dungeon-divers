@@ -1,8 +1,6 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
-[ext_resource type="PackedScene" path="res://scenes/player/sword.tscn" id="2_sword"]
-[ext_resource type="PackedScene" path="res://scenes/player/bow.tscn" id="3_bow"]
 [ext_resource type="Script" path="res://scripts/components/health.gd" id="4_health"]
 [ext_resource type="Script" path="res://scripts/components/stats.gd" id="5_stats"]
 [ext_resource type="Texture2D" path="res://assets/sprites/knight.png" id="6_knight"]
@@ -20,10 +18,54 @@ z_index = -1
 color = Color(0, 0, 0, 0.32)
 polygon = PackedVector2Array(-12, 14, -7, 11, 0, 10, 7, 11, 12, 14, 7, 17, 0, 18, -7, 17)
 
-[node name="Body" type="Sprite2D" parent="."]
+[node name="Body" type="Node2D" parent="."]
+
+[node name="Sprite" type="Sprite2D" parent="Body"]
 texture = ExtResource("6_knight")
 offset = Vector2(1, -12)
 scale = Vector2(2, 2)
+
+[node name="Robe" type="Polygon2D" parent="Body"]
+visible = false
+color = Color(0.34, 0.19, 0.5, 1)
+polygon = PackedVector2Array(-13, -6, 13, -6, 19, 22, -19, 22)
+
+[node name="Hood" type="Polygon2D" parent="Body"]
+visible = false
+color = Color(0.2, 0.11, 0.32, 1)
+polygon = PackedVector2Array(-9, -6, 9, -6, 6, -22, 0, -30, -6, -22)
+
+[node name="Rune" type="Polygon2D" parent="Body"]
+visible = false
+color = Color(0.72, 0.5, 1, 0.9)
+polygon = PackedVector2Array(-3, 2, 3, 2, 0, 11)
+
+[node name="Rogue" type="Node2D" parent="Body"]
+visible = false
+
+[node name="DaggerL" type="Polygon2D" parent="Body/Rogue"]
+color = Color(0.83, 0.88, 0.96, 1)
+polygon = PackedVector2Array(-12, -23, -8, -8, -12, -3, -16, -8)
+
+[node name="DaggerR" type="Polygon2D" parent="Body/Rogue"]
+color = Color(0.83, 0.88, 0.96, 1)
+polygon = PackedVector2Array(12, -23, 16, -8, 12, -3, 8, -8)
+
+[node name="Cloak" type="Polygon2D" parent="Body/Rogue"]
+color = Color(0.18, 0.42, 0.24, 1)
+polygon = PackedVector2Array(-12, -6, 12, -6, 16, 21, -16, 21)
+
+[node name="Hood" type="Polygon2D" parent="Body/Rogue"]
+color = Color(0.12, 0.3, 0.17, 1)
+polygon = PackedVector2Array(-9, -6, 9, -6, 6, -21, 0, -28, -6, -21)
+
+[node name="Sash" type="Polygon2D" parent="Body/Rogue"]
+color = Color(0.46, 0.73, 0.46, 0.95)
+polygon = PackedVector2Array(-13, 4, 12, -2, 14, 3, -11, 9)
+
+[node name="Visor" type="Polygon2D" parent="Body/Rogue"]
+color = Color(0.75, 1, 0.8, 0.9)
+polygon = PackedVector2Array(-4, -14, 4, -14, 3, -11, -3, -11)
 
 [node name="Nose" type="Polygon2D" parent="."]
 color = Color(1, 1, 1, 0.85)
@@ -36,10 +78,6 @@ shape = SubResource("CircleShape2D_1")
 script = ExtResource("5_stats")
 max_health = 20.0
 move_speed = 220.0
-
-[node name="Sword" parent="." instance=ExtResource("2_sword")]
-
-[node name="Bow" parent="." instance=ExtResource("3_bow")]
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("4_health")

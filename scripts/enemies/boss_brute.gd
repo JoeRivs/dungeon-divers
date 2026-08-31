@@ -1,15 +1,17 @@
 extends CharacterBody2D
 
-## Floor boss. Chases at a walk; from mid range it telegraphs and CHARGES;
-## point blank it winds up a SLAM shockwave. Periodically summons a pair of
-## grunts. Placeholder brute until real boss design.
+## Floor boss. Chases at a walk; mid range it CHARGES; point blank it SLAMs;
+## and from beyond charge range it lobs a telegraphed BOULDER at your feet,
+## so kiting at distance isn't free. Summons a grunt + an archer on a timer.
 
 const GRUNT_SCENE := preload("res://scenes/enemies/grunt.tscn")
+const ARCHER_SCENE := preload("res://scenes/enemies/skeleton_archer.tscn")
+const GROUND_AOE := preload("res://scenes/fx/ground_aoe.tscn")
 
-const WALK_SPEED: float = 58.0
+const WALK_SPEED: float = 66.0
 const CHARGE_SPEED: float = 440.0
 const CONTACT_RANGE: float = 52.0
-const CHARGE_RANGE: float = 280.0
+const CHARGE_RANGE: float = 340.0
 
 const CHARGE_WINDUP: float = 0.55
 const CHARGE_TIME: float = 0.55
@@ -17,12 +19,18 @@ const SLAM_WINDUP: float = 0.6
 const SLAM_RADIUS: float = 130.0
 const RECOVER: float = 0.9
 const CHARGE_GAP: float = 2.0
-const SUMMON_INTERVAL: float = 11.0
+const SUMMON_INTERVAL: float = 10.0
+
+const BOULDER_WINDUP: float = 0.65
+const BOULDER_RADIUS: float = 92.0
+const BOULDER_AOE_WINDUP: float = 0.55
+const BOULDER_GAP: float = 4.0
 
 const CHARGE_DICE := Vector2i(2, 4)
 const SLAM_DICE := Vector2i(1, 6)
+const BOULDER_DICE := Vector2i(2, 6)
 
-enum State { CHASE, CHARGE_WINDUP, CHARGING, SLAM_WINDUP, RECOVER }
+enum State { CHASE, CHARGE_WINDUP, CHARGING, SLAM_WINDUP, BOULDER_CAST, RECOVER }
 
 @onready var body: Polygon2D = $Body
 @onready var health: Health = $Health
@@ -31,6 +39,7 @@ var _player: Node2D = null
 var _state: int = State.CHASE
 var _timer: float = 0.0
 var _charge_gap_left: float = 0.0
+var _boulder_gap_left: float = 1.0
 var _summon_left: float = SUMMON_INTERVAL
 var _charge_dir: Vector2 = Vector2.ZERO
 var _charge_hit_done: bool = false
@@ -51,6 +60,7 @@ func apply_threat(hp_mult: float, dmg_mult: float) -> void:
 func _physics_process(delta: float) -> void:
 	_timer -= delta
 	_charge_gap_left = maxf(_charge_gap_left - delta, 0.0)
+	_boulder_gap_left = maxf(_boulder_gap_left - delta, 0.0)
 	_summon_left -= delta
 
 	if not is_instance_valid(_player):
@@ -82,6 +92,10 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 			if _timer <= 0.0:
 				_do_slam()
+		State.BOULDER_CAST:
+			velocity = Vector2.ZERO
+			if _timer <= 0.0:
+				_lob_boulder()
 		State.RECOVER:
 			velocity = Vector2.ZERO
 			if _timer <= 0.0:
@@ -106,6 +120,14 @@ func _chase() -> void:
 		_state = State.CHARGE_WINDUP
 		_timer = CHARGE_WINDUP
 		body.modulate = Color(1.0, 0.6, 0.3)
+	elif dist > CHARGE_RANGE:
+		# kiting out of reach - lob a boulder, or amble closer while it's on cd
+		if _boulder_gap_left <= 0.0:
+			_state = State.BOULDER_CAST
+			_timer = BOULDER_WINDUP
+			body.modulate = Color(0.8, 0.5, 1.0)
+		else:
+			velocity = _to_player().normalized() * (WALK_SPEED * 0.55)
 	else:
 		velocity = _to_player().normalized() * WALK_SPEED
 
@@ -139,6 +161,20 @@ func _deal(dice: Vector2i) -> void:
 		FloatingText.spawn(_player.global_position, dealt, Dice.is_max(raw, dice.x, dice.y), true)
 
 
+func _lob_boulder() -> void:
+	var mark: Vector2 = _player.global_position if is_instance_valid(_player) else global_position
+	var raw: int = Dice.roll(BOULDER_DICE.x, BOULDER_DICE.y)
+	var dmg: int = maxi(int(round(raw * _damage_mult)), 1)
+	var aoe := GROUND_AOE.instantiate()
+	get_parent().add_child(aoe)
+	aoe.setup(mark, BOULDER_RADIUS, dmg, BOULDER_AOE_WINDUP)
+
+	_boulder_gap_left = BOULDER_GAP
+	_state = State.RECOVER
+	_timer = RECOVER * 0.55
+	body.modulate = Color(0.7, 0.7, 0.8)
+
+
 func _spawn_ring() -> void:
 	var ring := Polygon2D.new()
 	ring.color = Color(1.0, 0.7, 0.3, 0.4)
@@ -165,12 +201,12 @@ func apply_damage(amount: int) -> int:
 
 
 func _summon() -> void:
-	for offset in [Vector2(-40, 30), Vector2(40, 30)]:
-		var g := GRUNT_SCENE.instantiate()
-		get_parent().add_child(g)
-		g.global_position = global_position + offset
-		if g.has_method("apply_threat"):
-			g.apply_threat(1.0, _damage_mult)
+	for pair in [[GRUNT_SCENE, Vector2(-44, 34)], [ARCHER_SCENE, Vector2(44, 34)]]:
+		var add := (pair[0] as PackedScene).instantiate()
+		get_parent().add_child(add)
+		add.global_position = global_position + (pair[1] as Vector2)
+		if add.has_method("apply_threat"):
+			add.apply_threat(1.0, _damage_mult)
 
 
 func _on_died() -> void:

@@ -17,6 +17,11 @@ var current_room_difficulty: int = 14
 var current_room_tier: int = 1
 var upgrades: Array[Upgrade] = []
 
+## forge rewires taken this run, + per-floor Forge-room scheduling
+var forges: Array[ForgeUpgrade] = []
+var forge_offered_this_floor: bool = false
+var forge_room_target: int = 4        ## offer the Forge door after this many rooms
+
 
 func start_new_run(pc: PlayerClass, aid: StringName = &"") -> void:
 	player_class = pc
@@ -29,6 +34,9 @@ func start_new_run(pc: PlayerClass, aid: StringName = &"") -> void:
 	current_room_difficulty = 14
 	current_room_tier = 1
 	upgrades = []
+	forges = []
+	forge_offered_this_floor = false
+	forge_room_target = randi_range(3, 7)
 	run_started.emit()
 
 

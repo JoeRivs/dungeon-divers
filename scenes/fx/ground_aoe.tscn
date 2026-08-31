@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/ground_aoe.gd" id="1_aoe"]
+
+[node name="GroundAoe" type="Node2D"]
+z_index = 1
+script = ExtResource("1_aoe")
+
+[node name="Fill" type="Polygon2D" parent="."]
+
+[node name="Outline" type="Polygon2D" parent="."]

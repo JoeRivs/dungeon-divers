@@ -13,17 +13,68 @@ extends CanvasLayer
 @onready var roll_root: Node2D = $RollReveal/Root
 @onready var roll_die: Polygon2D = $RollReveal/Root/Die
 @onready var roll_value: Label = $RollReveal/Root/Value
+@onready var mana_bar: ProgressBar = $ManaBar
+@onready var ability_row: HBoxContainer = $Abilities
+
+const SLOT_KEYS := { &"primary": "LMB", &"secondary": "RMB", &"skill": "Q", &"dodge": "SPC" }
+const SLOT_ORDER: Array[StringName] = [&"primary", &"secondary", &"skill", &"dodge"]
+
+var _player: Node = null
+var _slot_labels: Dictionary = {}
 
 
 func _ready() -> void:
 	boss_bar.visible = false
 	banner.visible = false
 	roll_layer.visible = false
+	mana_bar.visible = false
 
 
 func bind(health: Health) -> void:
 	health.health_changed.connect(_on_health_changed)
 	_on_health_changed(health.current_health, health.max_health)
+
+
+func bind_player(player: Node) -> void:
+	_player = player
+	mana_bar.visible = player.has_resource()
+	for c in ability_row.get_children():
+		c.queue_free()
+	_slot_labels.clear()
+	var slots: Dictionary = player.slots()
+	for slot in SLOT_ORDER:
+		if not slots.has(slot):
+			continue
+		var lbl := Label.new()
+		lbl.add_theme_font_size_override("font_size", 13)
+		lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+		lbl.add_theme_constant_override("outline_size", 4)
+		ability_row.add_child(lbl)
+		_slot_labels[slot] = lbl
+
+
+func _process(_delta: float) -> void:
+	if not is_instance_valid(_player):
+		return
+	if mana_bar.visible:
+		mana_bar.value = _player.resource_ratio() * 100.0
+	var slots: Dictionary = _player.slots()
+	for slot in _slot_labels:
+		var ability = slots.get(slot)
+		var lbl: Label = _slot_labels[slot]
+		if not is_instance_valid(ability):
+			lbl.text = ""
+			continue
+		var key: String = SLOT_KEYS.get(slot, "?")
+		if ability.cooldown_left > 0.05:
+			lbl.text = "%s %s  %.1fs" % [key, ability.display_name, ability.cooldown_left]
+			lbl.modulate = Color(0.55, 0.56, 0.62)
+		elif not ability.can_use():
+			lbl.text = "%s %s" % [key, ability.display_name]
+			lbl.modulate = Color(0.62, 0.5, 0.72)
+		else:
+			lbl.text = "%s %s" % [key, ability.display_name]
+			lbl.modulate = Color.WHITE
 
 
 func _on_health_changed(current: int, maximum: int) -> void:
