@@ -4,6 +4,8 @@ extends CharacterBody2D
 ## and from beyond charge range it lobs a telegraphed BOULDER at your feet,
 ## so kiting at distance isn't free. Summons a grunt + an archer on a timer.
 
+@export var xp_value: int = 150
+
 const GRUNT_SCENE := preload("res://scenes/enemies/grunt.tscn")
 const ARCHER_SCENE := preload("res://scenes/enemies/skeleton_archer.tscn")
 const GROUND_AOE := preload("res://scenes/fx/ground_aoe.tscn")
@@ -210,4 +212,5 @@ func _summon() -> void:
 
 
 func _on_died() -> void:
+	RunState.gain_xp(xp_value)
 	queue_free()

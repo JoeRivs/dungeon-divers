@@ -9,6 +9,11 @@ const SWING_TIME: float = 0.12
 const MOMENTUM_PER_HIT: float = 6.0
 const THIRD_STRIKE_EVERY: int = 3     ## Third Strike forge: this hit crits + 2x Momentum
 
+## Bloodrush etching: 3 connecting swings in a row (no whiffs) refunds the
+## cooldown and pays a Momentum burst - a free extra swing for staying sharp.
+const BLOODRUSH_STREAK: int = 3
+const BLOODRUSH_MOMENTUM: float = 20.0
+
 const SWOOSH_INNER: float = 10.0
 const SWOOSH_OUTER: float = 40.0
 const SWOOSH_SEGMENTS: int = 12
@@ -23,6 +28,7 @@ var _hit: Array[Node] = []
 var _swing_from: float = 0.0
 var _flip: float = 1.0                 ## alternate the swing side each use
 var _streak: int = 0                   ## running hit count, for Third Strike
+var _connect_streak: int = 0           ## consecutive connecting SWINGS, for Bloodrush
 
 
 func _ready() -> void:
@@ -106,6 +112,15 @@ func _end_swing() -> void:
 	_swinging = false
 	hitbox.monitoring = false
 	shape.disabled = true
+	if has_etching(&"bloodrush"):
+		if _hit.is_empty():
+			_connect_streak = 0
+		else:
+			_connect_streak += 1
+			if _connect_streak >= BLOODRUSH_STREAK:
+				_connect_streak = 0
+				wielder.gain_resource(BLOODRUSH_MOMENTUM)
+				cooldown_left = 0.0
 	var tween := create_tween()
 	tween.tween_property(swoosh, "modulate:a", 0.0, 0.07)
 	tween.tween_callback(func() -> void: swoosh.polygon = PackedVector2Array())

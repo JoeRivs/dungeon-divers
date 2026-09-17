@@ -10,6 +10,7 @@ const REACH: float = 130.0
 const HALF_ANGLE: float = 0.5          ## radians
 const HEAL_FRACTION: float = 0.35
 const VAMPIRIC_FONT_MULT: float = 2.0  ## Vampiric Font forge doubles the heal
+const SOULBOUND_CUT: float = 8.0       ## Soulbound etching: flat Soul cost cut
 
 
 func _perform(origin: Vector2, direction: Vector2) -> void:
@@ -34,10 +35,16 @@ func _perform(origin: Vector2, direction: Vector2) -> void:
 		return
 
 	var dmg: Dictionary = wielder.compute_damage(damage_dice, damage_kind)
-	var dealt: int = best.apply_damage(dmg.amount)
+	var amount: int = weakened(best, dmg.amount)
+	var dealt: int = best.apply_damage(amount)
 	if dealt > 0:
 		FloatingText.spawn(best.global_position, dealt, dmg.crit)
 		var frac: float = HEAL_FRACTION
-		if forge_id == &"vampiric_font":
+		if has_forge(&"vampiric_font"):
 			frac *= VAMPIRIC_FONT_MULT
 		wielder.health.heal(maxi(int(round(float(dealt) * frac)), 1))
+
+
+func _on_etching(id: StringName) -> void:
+	if id == &"soulbound":
+		mana_cost = maxf(mana_cost - SOULBOUND_CUT, 0.0)

@@ -5,6 +5,8 @@ extends CharacterBody2D
 ## if it connects, and it's wide open on the recovery afterwards. Uncommon,
 ## and only in the harder low-roll rooms.
 
+@export var xp_value: int = 20
+
 const SLASH_FX := preload("res://scenes/fx/slash_effect.tscn")
 
 const SPEED: float = 46.0            ## chase
@@ -142,4 +144,5 @@ func apply_damage(amount: int) -> int:
 
 
 func _on_died() -> void:
+	RunState.gain_xp(xp_value)
 	queue_free()

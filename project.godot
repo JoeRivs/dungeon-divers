@@ -20,11 +20,18 @@ config/icon="res://icon.svg"
 RunState="*res://scripts/systems/run_state.gd"
 ProjectilePool="*res://scripts/systems/projectile_pool.gd"
 FloatingText="*res://scripts/systems/floating_text.gd"
+WindowControls="*res://scripts/systems/window_controls.gd"
 
 [display]
 
+window/size/window_width_override=1600
+window/size/window_height_override=900
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[gui]
+
+theme/custom_font="res://assets/fonts/PixelifySans-Regular.ttf"
 
 [input]
 

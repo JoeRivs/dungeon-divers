@@ -23,6 +23,10 @@ var _burn_dmg: int = 0
 var _burst_done: bool = false
 var _cluster: bool = false
 var _radius: float = RADIUS
+var _wielder: Node = null
+var _spread: bool = false          ## Wildfire forge
+var _grant_regen: bool = false     ## Backdraft forge
+var _weaken_burst: bool = false    ## Ashfall etching (requires Molten Core)
 
 
 func _ready() -> void:
@@ -30,14 +34,21 @@ func _ready() -> void:
 
 
 func setup(from: Vector2, direction: Vector2, damage: int, crit: bool,
-		burn_ticks: int, burn_dmg: int, cluster: bool = false) -> void:
+		burn_ticks: int, burn_dmg: int, cluster: bool = false,
+		radius_mult: float = 1.0, speed_mult: float = 1.0, wielder: Node = null,
+		spread: bool = false, grant_regen: bool = false, weaken_burst: bool = false) -> void:
 	global_position = from
-	_velocity = direction.normalized() * SPEED
+	_velocity = direction.normalized() * SPEED * speed_mult
 	_damage = damage
 	_crit = crit
 	_burn_ticks = burn_ticks
 	_burn_dmg = burn_dmg
 	_cluster = cluster
+	_radius = RADIUS * radius_mult
+	_wielder = wielder
+	_spread = spread
+	_grant_regen = grant_regen
+	_weaken_burst = weaken_burst
 
 
 func _physics_process(delta: float) -> void:
@@ -78,10 +89,13 @@ func _burst() -> void:
 			continue
 		if e.global_position.distance_to(global_position) > _radius:
 			continue
-		var dealt: int = e.apply_damage(_damage)
+		var amount: int = maxi(int(round(_damage * Weaken.multiplier_on(e))), 1)
+		var dealt: int = e.apply_damage(amount)
 		if dealt > 0:
 			FloatingText.spawn(e.global_position, dealt, _crit)
 		_ignite(e)
+		if _weaken_burst:
+			Weaken.apply_to(e, 0.2)
 
 	if _cluster:
 		_scatter_bomblets()
@@ -90,16 +104,22 @@ func _burst() -> void:
 func _scatter_bomblets() -> void:
 	var scene: PackedScene = load("res://scenes/projectiles/fireball_proj.tscn")
 	var start: float = randf() * TAU
+	var parent := get_parent()
+	# carry forward whatever radius multiplier THIS burst was already using
+	# (Molten Core) so the bomblets scale with it too, not just the base size
+	var inherited_radius_mult: float = (_radius / RADIUS) * CLUSTER_RADIUS_FRACTION
 	for k in CLUSTER_COUNT:
 		var ang: float = start + TAU * float(k) / float(CLUSTER_COUNT)
 		var b = scene.instantiate()
-		get_parent().add_child(b)
+		# set up the orphan node first, add it to the tree deferred - we're
+		# mid physics-query-flush here (called from a body_entered signal)
 		b.global_position = global_position
 		b.setup(global_position, Vector2.from_angle(ang),
 			maxi(int(round(_damage * CLUSTER_DAMAGE_FRACTION)), 1), _crit,
-			_burn_ticks, _burn_dmg, false)
+			_burn_ticks, _burn_dmg, false, inherited_radius_mult, 1.0,
+			_wielder, _spread, _grant_regen, _weaken_burst)
 		b._flight = CLUSTER_HOP
-		b._radius = RADIUS * CLUSTER_RADIUS_FRACTION
+		parent.add_child.call_deferred(b)
 
 
 func _ignite(enemy: Node) -> void:
@@ -108,4 +128,4 @@ func _ignite(enemy: Node) -> void:
 		burn = BURN.instantiate()
 		burn.name = "Burn"
 		enemy.add_child.call_deferred(burn)
-	burn.apply(enemy, _burn_ticks, _burn_dmg)
+	burn.apply(enemy, _burn_ticks, _burn_dmg, _wielder, _spread, _grant_regen)

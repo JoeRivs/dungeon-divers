@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/upgrade_picker.tscn" id="4_pick"]
 [ext_resource type="PackedScene" path="res://scenes/ui/character_panel.tscn" id="5_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dev_panel.tscn" id="6_dev"]
 
 [node name="Run" type="Node2D"]
 y_sort_enabled = true
@@ -20,6 +21,8 @@ y_sort_enabled = true
 [node name="UpgradePicker" parent="." instance=ExtResource("4_pick")]
 
 [node name="CharacterPanel" parent="." instance=ExtResource("5_panel")]
+
+[node name="DevPanel" parent="." instance=ExtResource("6_dev")]
 
 [node name="Fade" type="CanvasLayer" parent="."]
 layer = 128

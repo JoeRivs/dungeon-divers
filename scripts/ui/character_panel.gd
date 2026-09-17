@@ -49,7 +49,9 @@ func _populate() -> void:
 	var s: Node = _player.get_node("Stats")
 
 	_row("%s  —  %s" % [RunState.player_class.display_name, _archetype_name()], 26, HEADER_COLOR)
-	_row("Floor %d · Room %d · %d gold" % [RunState.floor_index, RunState.room_index, RunState.gold], 15, DIM_COLOR)
+	_row("Floor %d · Room %d · %d gold · Lv %d (%d / %d xp)" % [
+		RunState.floor_index, RunState.room_index, RunState.gold,
+		RunState.level, RunState.xp, RunState.xp_next], 15, DIM_COLOR)
 	_gap()
 
 	_row("ATTRIBUTES", 18, HEADER_COLOR)
@@ -98,6 +100,14 @@ func _populate() -> void:
 	else:
 		for f in RunState.forges:
 			_row("%s — %s" % [f.display_name, f.description], 14)
+	_gap()
+
+	_row("ETCHINGS (%d)" % RunState.etchings.size(), 18, HEADER_COLOR)
+	if RunState.etchings.is_empty():
+		_row("none yet", 14, DIM_COLOR)
+	else:
+		for e in RunState.etchings:
+			_row("%s — %s" % [e.display_name, e.description], 14)
 
 
 ## One damage line: dice notation + flat + multiplier + the average a hit

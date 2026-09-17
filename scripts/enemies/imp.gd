@@ -4,6 +4,8 @@ extends CharacterBody2D
 ## peels away before you can retaliate. Low HP - the threat is that it's
 ## hard to hit, not that any one bite hurts.
 
+@export var xp_value: int = 8
+
 const SLASH_FX := preload("res://scenes/fx/slash_effect.tscn")
 
 const SPEED: float = 132.0
@@ -116,4 +118,5 @@ func apply_damage(amount: int) -> int:
 
 
 func _on_died() -> void:
+	RunState.gain_xp(xp_value)
 	queue_free()

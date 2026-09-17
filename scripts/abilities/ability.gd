@@ -14,22 +14,59 @@ extends Node2D
 
 var wielder: Node = null
 var cooldown_left: float = 0.0                   ## read by the HUD
-var forge_id: StringName = &""                   ## active forge rewire, if any
+var forge_id: StringName = &""                   ## most recently applied forge (single-slot reads)
+var forge_ids: Array[StringName] = []            ## every active forge - forges CAN stack on one ability
+var etching_ids: Array[StringName] = []          ## active Etchings - can stack too
 
 
 func setup(w: Node) -> void:
 	wielder = w
 
 
-## Apply a forge rewire. Subclasses read `forge_id` at perform time and/or
-## override _on_forge() for one-time setup.
+## Apply a forge rewire. An ability can hold more than one (that's the
+## point - Cluster Bombs + Wildfire + Molten Core all on Fireball is a
+## deliberate combo). Subclasses check has_forge() at perform time and/or
+## override _on_forge() for one-time setup. `forge_id` keeps tracking just
+## the latest one, for the handful of abilities that only ever get offered
+## a single forge and never needed has_forge().
 func apply_forge(id: StringName) -> void:
 	forge_id = id
+	if id in forge_ids:
+		return
+	forge_ids.append(id)
 	_on_forge(id)
+
+
+func has_forge(id: StringName) -> bool:
+	return id in forge_ids
 
 
 func _on_forge(_id: StringName) -> void:
 	pass
+
+
+## Apply an Etching (kill-XP reward). An ability can hold several at once -
+## subclasses check has_etching() at perform time and/or override
+## _on_etching() for one-time setup.
+func apply_etching(id: StringName) -> void:
+	if id in etching_ids:
+		return
+	etching_ids.append(id)
+	_on_etching(id)
+
+
+func has_etching(id: StringName) -> bool:
+	return id in etching_ids
+
+
+func _on_etching(_id: StringName) -> void:
+	pass
+
+
+## Fold in the Weaken debuff (if any forge/etching applied it to this
+## target) before dealing damage - the shared synergy multiplier.
+func weakened(target: Node, amount: int) -> int:
+	return maxi(int(round(amount * Weaken.multiplier_on(target))), 1)
 
 
 func _process(delta: float) -> void:

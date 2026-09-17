@@ -5,6 +5,8 @@ extends CharacterBody2D
 ## cooked; you have to break stride to dodge. Squishy and slow: close the gap
 ## and it folds.
 
+@export var xp_value: int = 16
+
 const GROUND_AOE := preload("res://scenes/fx/ground_aoe.tscn")
 
 const SPEED: float = 78.0
@@ -111,4 +113,5 @@ func apply_damage(amount: int) -> int:
 
 
 func _on_died() -> void:
+	RunState.gain_xp(xp_value)
 	queue_free()

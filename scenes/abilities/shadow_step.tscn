@@ -6,3 +6,4 @@
 script = ExtResource("1_step")
 display_name = "Shadow Step"
 base_cooldown = 0.9
+ability_id = &"shadow_step"

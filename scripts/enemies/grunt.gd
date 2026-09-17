@@ -4,6 +4,8 @@ extends CharacterBody2D
 ## telegraphs briefly then hits them. Easy to dodge through the windup.
 ## TODO: lift these stats into an EnemyType resource in res://data/.
 
+@export var xp_value: int = 8
+
 const SLASH_FX := preload("res://scenes/fx/slash_effect.tscn")
 
 const SPEED: float = 78.0
@@ -103,4 +105,5 @@ func apply_damage(amount: int) -> int:
 
 
 func _on_died() -> void:
+	RunState.gain_xp(xp_value)
 	queue_free()

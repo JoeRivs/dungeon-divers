@@ -4,6 +4,8 @@ extends CharacterBody2D
 ## run, and while you're in its band it strafes and looses hostile arrows
 ## after a short draw.
 
+@export var xp_value: int = 12
+
 const SPEED: float = 92.0
 const NEAR: float = 155.0        ## closer than this -> retreat
 const FAR: float = 290.0         ## farther than this -> advance
@@ -92,4 +94,5 @@ func apply_damage(amount: int) -> int:
 
 
 func _on_died() -> void:
+	RunState.gain_xp(xp_value)
 	queue_free()

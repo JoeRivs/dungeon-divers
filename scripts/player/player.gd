@@ -87,9 +87,11 @@ func _apply_loadout() -> void:
 	_resource_regen = stats.get_stat(&"resource_regen")
 	_resource = _resource_max if pc.resource_starts_full else 0.0
 
-	# re-apply any forge rewires taken so far this run
+	# re-apply any forge rewires / Etchings taken so far this run
 	for f in RunState.forges:
 		apply_forge(f)
+	for e in RunState.etchings:
+		apply_etching(e)
 
 
 func _slot_scene(pc: PlayerClass, arch: Archetype, slot: StringName) -> PackedScene:
@@ -214,12 +216,54 @@ func slots() -> Dictionary:
 
 
 ## Route a forge rewire to whichever mounted slot holds its target ability.
+## A "new weapon" forge (replacement_ability set) swaps the mounted scene
+## outright instead of rewiring the existing instance.
 func apply_forge(f: ForgeUpgrade) -> void:
 	for slot in _slots:
 		var ab = _slots[slot]
 		if is_instance_valid(ab) and ab.ability_id == f.ability_id:
-			ab.apply_forge(f.id)
+			if f.replacement_ability != null:
+				_swap_ability(slot, f.replacement_ability, ab.ability_id)
+			else:
+				ab.apply_forge(f.id)
 			return
+
+
+## Route an Etching to whichever mounted slot holds its target ability.
+func apply_etching(e: Etching) -> void:
+	for slot in _slots:
+		var ab = _slots[slot]
+		if is_instance_valid(ab) and ab.ability_id == e.ability_id:
+			ab.apply_etching(e.id)
+			return
+
+
+## Free the current ability in `slot` and mount a different scene in its
+## place. Re-applies any OTHER forges/Etchings that target the NEW ability's
+## id (a replay after a room reload, or stacking a second rewire onto a
+## freshly-swapped weapon) AND ones that targeted the OLD ability_id it's
+## replacing - a forge picked up before the swap (Cleave on Sword, say)
+## shouldn't just vanish because you later swapped to Spear. The new
+## ability's own script decides what to do with an id it recognizes via
+## has_forge()/has_etching(); one it doesn't reinterpret is a harmless no-op.
+func _swap_ability(slot: StringName, scene: PackedScene, old_ability_id: StringName) -> void:
+	var old = _slots.get(slot)
+	if is_instance_valid(old):
+		old.queue_free()
+
+	var ability: Ability = scene.instantiate()
+	add_child(ability)
+	ability.setup(self)
+	_slots[slot] = ability
+
+	for f2 in RunState.forges:
+		if f2.replacement_ability != null:
+			continue
+		if f2.ability_id == ability.ability_id or f2.ability_id == old_ability_id:
+			ability.apply_forge(f2.id)
+	for e2 in RunState.etchings:
+		if e2.ability_id == ability.ability_id or e2.ability_id == old_ability_id:
+			ability.apply_etching(e2.id)
 
 
 ## Returns the damage actually taken (0 if dodging / dead / fully mitigated).

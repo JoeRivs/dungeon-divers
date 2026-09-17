@@ -2,8 +2,8 @@ extends CanvasLayer
 
 ## Hades-style "pick 1 of 3" overlay. present() shows the cards and awaits a
 ## choice (mouse click or keys 1/2/3), returns the chosen entry. Works for
-## anything with `display_name` + `description` (Upgrade or ForgeUpgrade).
-## Runs while the tree is paused (process_mode = Always on the scene root).
+## anything with `display_name` + `description` (Upgrade / ForgeUpgrade /
+## Etching). Runs while the tree is paused (process_mode = Always on root).
 
 signal _picked(choice)
 
@@ -23,7 +23,11 @@ func present(choices: Array) -> Resource:
 
 	for i in choices.size():
 		var u = choices[i]
-		var tag: String = "— Tier %d —" % u.tier if "tier" in u else "— FORGE —"
+		var tag: String = "— FORGE —"
+		if u is Etching:
+			tag = "— ETCHING —"
+		elif "tier" in u:
+			tag = "— Tier %d —" % u.tier
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(240, 220)
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

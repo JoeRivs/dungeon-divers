@@ -14,6 +14,8 @@ extends CanvasLayer
 @onready var roll_die: Polygon2D = $RollReveal/Root/Die
 @onready var roll_value: Label = $RollReveal/Root/Value
 @onready var mana_bar: ProgressBar = $ManaBar
+@onready var xp_bar: ProgressBar = $XpBar
+@onready var level_label: Label = $LevelLabel
 @onready var ability_row: HBoxContainer = $Abilities
 
 const SLOT_KEYS := { &"primary": "LMB", &"secondary": "RMB", &"skill": "Q", &"dodge": "SPC" }
@@ -58,6 +60,8 @@ func _process(_delta: float) -> void:
 		return
 	if mana_bar.visible:
 		mana_bar.value = _player.resource_ratio() * 100.0
+	xp_bar.value = (float(RunState.xp) / float(maxi(RunState.xp_next, 1))) * 100.0
+	level_label.text = "Lv %d" % RunState.level
 	var slots: Dictionary = _player.slots()
 	for slot in _slot_labels:
 		var ability = slots.get(slot)

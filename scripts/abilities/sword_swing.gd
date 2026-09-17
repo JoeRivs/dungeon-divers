@@ -17,6 +17,9 @@ const CLEAVE_ARC_MULT: float = 1.7
 const CLEAVE_TIME_MULT: float = 1.3
 const CLEAVE_DIE_BONUS: int = 2
 
+const BLEED := preload("res://scenes/status/bleed.tscn")
+const HEMORRHAGE_MULT: float = 1.6
+
 @onready var hitbox: Area2D = $Hitbox
 @onready var shape: CollisionShape2D = $Hitbox/Shape
 @onready var swoosh: Polygon2D = $Swoosh
@@ -93,6 +96,23 @@ func _physics_process(_delta: float) -> void:
 			if dealt > 0:
 				FloatingText.spawn(target.global_position, dealt, dmg.crit)
 			_hit.append(target)
+			_apply_bleed(target)
+
+
+## Bleeding Edge etching: stack a bleed on hit. Hemorrhage: a hit that lands
+## on an already-maxed stack detonates it for a heavy bonus hit first.
+func _apply_bleed(target: Node) -> void:
+	if not has_etching(&"bleeding_edge"):
+		return
+	var bleed = target.get_node_or_null("Bleed")
+	if has_etching(&"hemorrhage") and bleed != null and bleed.is_maxed():
+		bleed.burst(HEMORRHAGE_MULT)
+		bleed = null
+	if bleed == null:
+		bleed = BLEED.instantiate()
+		bleed.name = "Bleed"
+		target.add_child.call_deferred(bleed)
+	bleed.add_stack()
 
 
 func _update_swoosh(swept: float) -> void:

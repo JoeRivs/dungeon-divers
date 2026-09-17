@@ -25,9 +25,13 @@ const DOOR_DICE_WEIGHT: Array[float] = [16.0, 7.0, 1.8, 0.45]
 @onready var fade: ColorRect = $Fade/Rect
 @onready var upgrade_picker: CanvasLayer = $UpgradePicker
 @onready var character_panel: CanvasLayer = $CharacterPanel
+@onready var dev_panel: CanvasLayer = $DevPanel
 
 var _room: Node = null
 var _over: bool = false
+var _picker_active: bool = false      ## true while any pick-1-of-3 overlay is up
+var _level_queue: int = 0             ## leveled_up can fire faster than we can show picks
+var _draining_levels: bool = false
 
 
 func _ready() -> void:
@@ -35,7 +39,9 @@ func _ready() -> void:
 	hud.bind(player.health)
 	hud.bind_player(player)
 	character_panel.bind(player)
+	dev_panel.bind(player, hud)
 	player.health.died.connect(_on_player_died)
+	RunState.leveled_up.connect(_on_leveled_up)
 
 	fade.color.a = 1.0
 	# opening room is a gentle freebie
@@ -87,9 +93,11 @@ func _offer_upgrade() -> void:
 	if choices.is_empty():
 		return
 
+	_picker_active = true
 	get_tree().paused = true
 	var picked = await upgrade_picker.present(choices)
 	get_tree().paused = false
+	_picker_active = false
 
 	if picked != null:
 		_apply_upgrade(picked)
@@ -198,13 +206,56 @@ func _offer_forge() -> void:
 	if choices.is_empty():
 		return
 
+	_picker_active = true
 	get_tree().paused = true
 	var picked = await upgrade_picker.present(choices)
 	get_tree().paused = false
+	_picker_active = false
 
 	if picked != null:
 		RunState.forges.append(picked)
 		player.apply_forge(picked)
+		hud.refresh_run()
+
+
+func _on_leveled_up(_new_level: int) -> void:
+	_level_queue += 1
+	_drain_levels()
+
+
+## Levels can queue up faster than we can show a pick (a big XP dump). Drain
+## one at a time, waiting out any other picker (boon/forge) already open.
+func _drain_levels() -> void:
+	if _draining_levels:
+		return
+	_draining_levels = true
+	while _level_queue > 0:
+		while _picker_active or _over:
+			if _over:
+				_level_queue = 0
+				_draining_levels = false
+				return
+			await get_tree().process_frame
+		_level_queue -= 1
+		await _offer_etching()
+	_draining_levels = false
+
+
+## Pause, show up to 3 Etchings valid for this loadout, apply the pick.
+func _offer_etching() -> void:
+	var choices: Array[Etching] = Etchings.draw_for(player, RunState.etchings, RunState.forges, 3)
+	if choices.is_empty():
+		return
+
+	_picker_active = true
+	get_tree().paused = true
+	var picked = await upgrade_picker.present(choices)
+	get_tree().paused = false
+	_picker_active = false
+
+	if picked != null:
+		RunState.etchings.append(picked)
+		player.apply_etching(picked)
 		hud.refresh_run()
 
 

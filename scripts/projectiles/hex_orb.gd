@@ -12,18 +12,28 @@ var _damage: int = 0
 var _crit: bool = false
 var _radius: float = 90.0
 var _burst_done: bool = false
+var _detonate_burns: bool = false
+var _detonate_mult: float = 1.0
+var _apply_weaken: bool = false
+var _weaken_amount: float = 0.0
 
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 
 
-func setup(from: Vector2, direction: Vector2, damage: int, crit: bool, radius: float) -> void:
+func setup(from: Vector2, direction: Vector2, damage: int, crit: bool, radius: float,
+		detonate_burns: bool = false, detonate_mult: float = 1.0,
+		apply_weaken: bool = false, weaken_amount: float = 0.0) -> void:
 	global_position = from
 	_velocity = direction.normalized() * SPEED
 	_damage = damage
 	_crit = crit
 	_radius = radius
+	_detonate_burns = detonate_burns
+	_detonate_mult = detonate_mult
+	_apply_weaken = apply_weaken
+	_weaken_amount = weaken_amount
 
 
 func _physics_process(delta: float) -> void:
@@ -62,6 +72,17 @@ func _burst() -> void:
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if is_instance_valid(e) and e.has_method("apply_damage") \
 				and e.global_position.distance_to(global_position) <= _radius:
-			var dealt: int = e.apply_damage(_damage)
+			var amount: int = maxi(int(round(_damage * Weaken.multiplier_on(e))), 1)
+			var dealt: int = e.apply_damage(amount)
 			if dealt > 0:
 				FloatingText.spawn(e.global_position, dealt, _crit)
+			if _apply_weaken:
+				Weaken.apply_to(e, _weaken_amount)
+			if _detonate_burns:
+				var burn := e.get_node_or_null("Burn")
+				if burn != null:
+					var bonus: int = maxi(int(round(_damage * _detonate_mult)), 1)
+					var extra: int = e.apply_damage(bonus)
+					if extra > 0:
+						FloatingText.spawn(e.global_position, extra, true)
+					burn.queue_free()
